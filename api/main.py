@@ -1,8 +1,10 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import snowflake.connector
+import requests as http_requests
 
 load_dotenv()
 
@@ -42,6 +44,18 @@ def random_track():
                 LIMIT 1
             """)
             return cur.fetchone()
+
+
+@app.get("/tracks/{track_id}/preview")
+def track_preview(track_id: int):
+    """Fetch a fresh preview URL from Deezer and redirect to it."""
+    res = http_requests.get(f"https://api.deezer.com/track/{track_id}", timeout=5)
+    res.raise_for_status()
+    data = res.json()
+    preview_url = data.get("preview")
+    if not preview_url:
+        raise HTTPException(status_code=404, detail="No preview available for this track")
+    return RedirectResponse(url=preview_url)
 
 
 @app.get("/tracks/search")
