@@ -53,8 +53,12 @@ app = FastAPI(title="TrackDown API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://192.168.0.89:5173", "https://trackdown-production-52f0.up.railway.app"],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=[
+        "http://localhost:5173",
+        "http://192.168.0.89:5173",
+        "https://trackdown-production-52f0.up.railway.app",
+        "https://trackdown-ngnwazz5a-rgarfield11s-projects.vercel.app",
+    ],
     allow_methods=["GET"],
     allow_headers=["*"],
 )
