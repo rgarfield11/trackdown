@@ -11,6 +11,7 @@ const MAX_GUESSES = CLIP_DURATIONS.length
 
 const track = ref<Record<string, any> | null>(null)
 const isPlaying = ref(false)
+const showRules = ref(false)
 const guesses = ref<Array<{
   track: Record<string, any>
   sameArtist: boolean
@@ -82,6 +83,37 @@ onMounted(loadTrack)
       <h1>TrackDown</h1>
       <p class="subtitle">Guess the song from the clip</p>
     </header>
+
+    <div class="top-actions">
+      <button class="icon-btn" @click="showRules = true" aria-label="How to play" data-tooltip="How to play">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <circle cx="12" cy="17" r=".5" fill="currentColor"/>
+        </svg>
+      </button>
+      <a class="icon-btn" href="https://github.com/rgarfield11/trackdown" target="_blank" rel="noopener" aria-label="Github repo" data-tooltip="Github repo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Rules modal -->
+    <div v-if="showRules" class="modal-backdrop" @click.self="showRules = false">
+      <div class="modal">
+        <button class="modal-close" @click="showRules = false">✕</button>
+        <h2>How to Play</h2>
+        <ul>
+          <li>Listen to the clip and guess the song.</li>
+          <li>You have <strong>6 guesses</strong>. Each wrong guess or skip adds 1 second to the clip.</li>
+          <li>Search by song title or artist name to make a guess.</li>
+          <li>Wrong guesses show clues — same artist, same genre, or release year within 5 years.</li>
+          <li>Hit <strong>Skip</strong> to hear more without guessing.</li>
+          <li>Hit <strong>Give Up</strong> to reveal the answer.</li>
+        </ul>
+      </div>
+    </div>
 
     <VinylRecord :spinning="isPlaying" />
 
@@ -171,6 +203,119 @@ onMounted(loadTrack)
   font-size: 13px;
   color: var(--color-text-muted);
   margin-top: 2px;
+}
+
+.top-actions {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 50;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  transition: color 0.15s, border-color 0.15s;
+  text-decoration: none;
+  position: relative;
+}
+
+.icon-btn:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 12px;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+.modal {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  position: relative;
+}
+
+.modal h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--color-accent);
+}
+
+.modal ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal li {
+  font-size: 14px;
+  color: var(--color-text);
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.modal li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
 }
 
 .loading {
