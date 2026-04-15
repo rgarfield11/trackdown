@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   guesses: Array<{
-    track: Record<string, any>
+    track: Record<string, any> | null
     sameArtist: boolean
     sameGenre: boolean
     yearDiff: number
@@ -11,20 +11,25 @@ defineProps<{
 
 <template>
   <ul class="guesses">
-    <li v-for="(g, i) in guesses" :key="i" class="guess">
-      <img :src="g.track.ALBUM_COVER_URL" :alt="g.track.ALBUM_TITLE" />
-      <div class="info">
-        <span class="title">{{ g.track.TITLE }}</span>
-        <span class="artist">{{ g.track.ARTIST_NAME }} &middot; {{ g.track.RELEASE_YEAR }}</span>
-        <div class="clues">
-          <span v-if="g.sameArtist" class="clue correct">Same Artist</span>
-          <span v-if="g.sameGenre" class="clue partial">Same Genre</span>
-          <span v-if="!g.sameArtist && g.yearDiff <= 5" class="clue partial">
-            Within {{ g.yearDiff === 0 ? 'Same Year' : `${g.yearDiff}yr` }}
-          </span>
+    <li v-for="(g, i) in guesses" :key="i" class="guess" :class="{ skipped: !g.track }">
+      <template v-if="g.track">
+        <img :src="g.track.ALBUM_COVER_URL" :alt="g.track.ALBUM_TITLE" />
+        <div class="info">
+          <span class="title">{{ g.track.TITLE }}</span>
+          <span class="artist">{{ g.track.ARTIST_NAME }} &middot; {{ g.track.RELEASE_YEAR }}</span>
+          <div class="clues">
+            <span v-if="g.sameArtist" class="clue correct">Same Artist</span>
+            <span v-if="g.sameGenre" class="clue partial">Same Genre</span>
+            <span v-if="!g.sameArtist && g.yearDiff <= 5" class="clue partial">
+              Within {{ g.yearDiff === 0 ? 'Same Year' : `${g.yearDiff}yr` }}
+            </span>
+          </div>
         </div>
-      </div>
-      <span class="wrong-mark">✕</span>
+        <span class="wrong-mark">✕</span>
+      </template>
+      <template v-else>
+        <span class="skip-label">Skipped</span>
+      </template>
     </li>
   </ul>
 </template>
@@ -46,6 +51,11 @@ defineProps<{
   border-radius: 10px;
   padding: 10px 14px;
   border-left: 3px solid var(--color-wrong);
+}
+
+.guess.skipped {
+  border-left-color: var(--color-text-muted);
+  opacity: 0.6;
 }
 
 .guess img {
@@ -106,5 +116,11 @@ defineProps<{
   color: var(--color-text-muted);
   font-size: 14px;
   flex-shrink: 0;
+}
+
+.skip-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 </style>

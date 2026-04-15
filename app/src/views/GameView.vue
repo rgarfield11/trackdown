@@ -3,12 +3,14 @@ import { ref, onMounted } from 'vue'
 import AudioPlayer from '../components/AudioPlayer.vue'
 import GuessInput from '../components/GuessInput.vue'
 import GuessList from '../components/GuessList.vue'
+import VinylRecord from '../components/VinylRecord.vue'
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 const CLIP_DURATIONS = [1, 2, 3, 4, 5, 6]
 const MAX_GUESSES = CLIP_DURATIONS.length
 
 const track = ref<Record<string, any> | null>(null)
+const isPlaying = ref(false)
 const guesses = ref<Array<{
   track: Record<string, any>
   sameArtist: boolean
@@ -50,6 +52,21 @@ function onGuess(guessed: Record<string, any>) {
   }
 }
 
+function skip() {
+  if (!track.value || gameStatus.value !== 'playing') return
+
+  guesses.value.push({ track: null, sameArtist: false, sameGenre: false, yearDiff: Infinity })
+
+  if (guesses.value.length >= MAX_GUESSES) {
+    gameStatus.value = 'lost'
+  }
+}
+
+function giveUp() {
+  if (gameStatus.value !== 'playing') return
+  gameStatus.value = 'lost'
+}
+
 function playAgain() {
   guesses.value = []
   gameStatus.value = 'playing'
@@ -66,10 +83,17 @@ onMounted(loadTrack)
       <p class="subtitle">Guess the song from the clip</p>
     </header>
 
+    <VinylRecord :spinning="isPlaying" />
+
     <div v-if="loading" class="loading">Loading track...</div>
 
     <template v-else-if="track">
-      <AudioPlayer :track-id="track.TRACK_ID" :max-duration="currentDuration()" />
+      <AudioPlayer
+        :track-id="track.TRACK_ID"
+        :max-duration="currentDuration()"
+        :loop="gameStatus !== 'playing'"
+        @playing="isPlaying = $event"
+      />
 
       <div class="attempts">
         <span
@@ -84,6 +108,13 @@ onMounted(loadTrack)
       </div>
 
       <GuessList v-if="guesses.length" :guesses="guesses" />
+
+      <div v-if="gameStatus === 'playing'" class="actions">
+        <button class="btn-skip" @click="skip" :disabled="guesses.length >= MAX_GUESSES - 1" title="Use a turn to hear more">
+          Skip (+1s)
+        </button>
+        <button class="btn-give-up" @click="giveUp">Give Up</button>
+      </div>
 
       <GuessInput v-if="gameStatus === 'playing'" @guess="onGuess" />
 
@@ -213,7 +244,7 @@ onMounted(loadTrack)
   margin-top: 4px;
   padding: 12px 32px;
   background: var(--color-accent);
-  color: #000;
+  color: #1a1410;
   border: none;
   border-radius: 50px;
   font-size: 15px;
@@ -224,5 +255,44 @@ onMounted(loadTrack)
 
 .play-again:active {
   opacity: 0.8;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-skip,
+.btn-give-up {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-skip {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-skip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-give-up {
+  background: rgba(200, 80, 60, 0.1);
+  color: #c85040;
+  border: 1px solid rgba(200, 80, 60, 0.25);
+}
+
+.btn-skip:not(:disabled):active,
+.btn-give-up:active {
+  opacity: 0.7;
 }
 </style>
