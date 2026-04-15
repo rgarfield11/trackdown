@@ -23,6 +23,7 @@ select
     genre_name,
 
     duration_seconds,
+    bpm,
     label,
     record_type,
     isrc
