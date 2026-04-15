@@ -1,0 +1,17 @@
+{
+  "name": "TrackDown",
+  "short_name": "TrackDown",
+  "description": "Guess the song from the clip",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1410",
+  "theme_color": "#1a1410",
+  "icons": [
+    {
+      "src": "/vinyl.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

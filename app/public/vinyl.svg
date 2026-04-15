@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Vinyl record body with grooves -->
+  <circle cx="256" cy="256" r="256" fill="#1c1810"/>
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#2a2318" stroke-width="2"/>
+  <circle cx="256" cy="256" r="224" fill="none" stroke="#221f14" stroke-width="2"/>
+  <circle cx="256" cy="256" r="208" fill="none" stroke="#2a2318" stroke-width="2"/>
+  <circle cx="256" cy="256" r="192" fill="none" stroke="#221f14" stroke-width="2"/>
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#2a2318" stroke-width="2"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#221f14" stroke-width="2"/>
+  <circle cx="256" cy="256" r="144" fill="none" stroke="#2a2318" stroke-width="2"/>
+  <circle cx="256" cy="256" r="128" fill="none" stroke="#221f14" stroke-width="2"/>
+  <circle cx="256" cy="256" r="112" fill="none" stroke="#2a2318" stroke-width="2"/>
+  <!-- Center label -->
+  <circle cx="256" cy="256" r="90" fill="url(#label)"/>
+  <defs>
+    <radialGradient id="label" cx="40%" cy="40%">
+      <stop offset="0%" stop-color="#c8954a"/>
+      <stop offset="100%" stop-color="#8a5e28"/>
+    </radialGradient>
+  </defs>
+  <!-- Center hole -->
+  <circle cx="256" cy="256" r="12" fill="#1c1810"/>
+  <!-- Question mark -->
+  <text x="256" y="290" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="100" fill="#1a1410">?</text>
+</svg>

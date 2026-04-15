@@ -58,6 +58,7 @@ app.add_middleware(
         "http://192.168.0.89:5173",
         "https://trackdown-production-52f0.up.railway.app",
         "https://trackdown-ngnwazz5a-rgarfield11s-projects.vercel.app",
+        "https://trackdown-amber.vercel.app",
     ],
     allow_methods=["GET"],
     allow_headers=["*"],
