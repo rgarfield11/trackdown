@@ -3,12 +3,14 @@ import { ref, onMounted } from 'vue'
 import AudioPlayer from '../components/AudioPlayer.vue'
 import GuessInput from '../components/GuessInput.vue'
 import GuessList from '../components/GuessList.vue'
+import VinylRecord from '../components/VinylRecord.vue'
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 const CLIP_DURATIONS = [1, 2, 3, 4, 5, 6]
 const MAX_GUESSES = CLIP_DURATIONS.length
 
 const track = ref<Record<string, any> | null>(null)
+const isPlaying = ref(false)
 const guesses = ref<Array<{
   track: Record<string, any>
   sameArtist: boolean
@@ -81,10 +83,17 @@ onMounted(loadTrack)
       <p class="subtitle">Guess the song from the clip</p>
     </header>
 
+    <VinylRecord :spinning="isPlaying" />
+
     <div v-if="loading" class="loading">Loading track...</div>
 
     <template v-else-if="track">
-      <AudioPlayer :track-id="track.TRACK_ID" :max-duration="currentDuration()" />
+      <AudioPlayer
+        :track-id="track.TRACK_ID"
+        :max-duration="currentDuration()"
+        :loop="gameStatus !== 'playing'"
+        @playing="isPlaying = $event"
+      />
 
       <div class="attempts">
         <span
@@ -235,7 +244,7 @@ onMounted(loadTrack)
   margin-top: 4px;
   padding: 12px 32px;
   background: var(--color-accent);
-  color: #000;
+  color: #1a1410;
   border: none;
   border-radius: 50px;
   font-size: 15px;
@@ -277,9 +286,9 @@ onMounted(loadTrack)
 }
 
 .btn-give-up {
-  background: rgba(255, 80, 80, 0.08);
-  color: #ff6b6b;
-  border: 1px solid rgba(255, 80, 80, 0.2);
+  background: rgba(200, 80, 60, 0.1);
+  color: #c85040;
+  border: 1px solid rgba(200, 80, 60, 0.25);
 }
 
 .btn-skip:not(:disabled):active,

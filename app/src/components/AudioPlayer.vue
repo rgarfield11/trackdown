@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, onBeforeUnmount, watchEffect } from 'vue'
 
 const props = defineProps<{
   trackId: number
   maxDuration: number
+  loop?: boolean
 }>()
+
+const emit = defineEmits<{ playing: [value: boolean] }>()
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 const previewUrl = () => `${API}/tracks/${props.trackId}/preview`
@@ -15,19 +18,25 @@ const error = ref<string | null>(null)
 const audio = new Audio()
 
 audio.ontimeupdate = () => {
-  if (audio.currentTime >= props.maxDuration) {
+  if (!props.loop && audio.currentTime >= props.maxDuration) {
     audio.pause()
     audio.currentTime = 0
     isPlaying.value = false
     progress.value = 0
     return
   }
-  progress.value = (audio.currentTime / props.maxDuration) * 100
+  const duration = props.loop ? audio.duration || 30 : props.maxDuration
+  progress.value = (audio.currentTime / duration) * 100
 }
 
 audio.onended = () => {
-  isPlaying.value = false
-  progress.value = 0
+  if (props.loop) {
+    audio.currentTime = 0
+    audio.play()
+  } else {
+    isPlaying.value = false
+    progress.value = 0
+  }
 }
 
 audio.onerror = () => {
@@ -45,11 +54,26 @@ watch(() => props.trackId, () => {
 })
 
 watch(() => props.maxDuration, () => {
-  if (isPlaying.value) {
+  if (isPlaying.value && !props.loop) {
     audio.pause()
     audio.currentTime = 0
     isPlaying.value = false
     progress.value = 0
+  }
+})
+
+watch(() => props.loop, async (looping) => {
+  if (looping) {
+    error.value = null
+    audio.src = previewUrl()
+    audio.currentTime = 0
+    try {
+      await audio.play()
+      isPlaying.value = true
+    } catch (e: any) {
+      error.value = e.message
+      isPlaying.value = false
+    }
   }
 })
 
@@ -73,6 +97,8 @@ async function toggle() {
   }
 }
 
+watchEffect(() => emit('playing', isPlaying.value))
+
 onBeforeUnmount(() => {
   audio.pause()
   audio.src = ''
@@ -94,7 +120,7 @@ onBeforeUnmount(() => {
       <div class="progress-bar" :style="{ width: progress + '%' }" />
     </div>
 
-    <span class="duration">{{ maxDuration }}s</span>
+    <span class="duration">{{ loop ? '30s' : `${maxDuration}s` }}</span>
   </div>
   <p v-if="error" class="audio-error">{{ error }}</p>
 </template>
@@ -121,7 +147,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #000;
+  color: #1a1410;
   transition: transform 0.1s, opacity 0.1s;
 }
 
