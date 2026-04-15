@@ -23,6 +23,7 @@ flattened as (
         src:genre_id::integer       as genre_id,
         src:genre_name::varchar     as genre_name,
 
+        src:bpm::float              as bpm,
         src:duration_seconds::integer as duration_seconds,
         src:label::varchar          as label,
         src:record_type::varchar    as record_type,
