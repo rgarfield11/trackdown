@@ -10,6 +10,7 @@ const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 const query = ref('')
 const results = ref<Record<string, any>[]>([])
 const open = ref(false)
+const loading = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout>
 
 watch(query, (val) => {
@@ -17,12 +18,16 @@ watch(query, (val) => {
   if (!val.trim()) {
     results.value = []
     open.value = false
+    loading.value = false
     return
   }
+  loading.value = true
+  open.value = true
   debounceTimer = setTimeout(async () => {
     const res = await fetch(`${API}/tracks/search?q=${encodeURIComponent(val)}`)
     results.value = await res.json()
-    open.value = results.value.length > 0
+    loading.value = false
+    open.value = true
   }, 250)
 })
 
@@ -41,18 +46,25 @@ function select(track: Record<string, any>) {
       type="text"
       placeholder="Search for a song or artist..."
       autocomplete="off"
-      @blur="setTimeout(() => (open = false), 150)"
+      @blur="setTimeout(() => { open = false; loading = false }, 150)"
       @focus="open = results.length > 0"
     />
 
     <ul v-if="open" class="dropdown">
-      <li v-for="track in results" :key="track.TRACK_ID" @mousedown="select(track)">
-        <img :src="track.ALBUM_COVER_URL" :alt="track.ALBUM_TITLE" />
-        <div class="track-info">
-          <span class="title">{{ track.TITLE }}</span>
-          <span class="artist">{{ track.ARTIST_NAME }} &middot; {{ track.RELEASE_YEAR }}</span>
-        </div>
+      <li v-if="loading" class="dropdown-loading">
+        <span class="spinner" />
+        <span>Searching...</span>
       </li>
+      <template v-else>
+        <li v-for="track in results" :key="track.TRACK_ID" @mousedown="select(track)">
+          <img :src="track.ALBUM_COVER_URL" :alt="track.ALBUM_TITLE" />
+          <div class="track-info">
+            <span class="title">{{ track.TITLE }}</span>
+            <span class="artist">{{ track.ARTIST_NAME }} &middot; {{ track.RELEASE_YEAR }}</span>
+          </div>
+        </li>
+        <li v-if="results.length === 0" class="dropdown-empty">No results found</li>
+      </template>
     </ul>
   </div>
 </template>
@@ -140,5 +152,29 @@ input::placeholder {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.dropdown-loading,
+.dropdown-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
