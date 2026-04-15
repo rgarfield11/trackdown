@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+.env
+
+# Data files — keep schema, ignore raw extracts
+pipeline/data/*.json
+data/
+
+# Claude Code
+.claude/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+
+# Editors
+.vscode/
+.idea/
+*.swp
