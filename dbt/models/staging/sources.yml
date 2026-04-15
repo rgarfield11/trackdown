@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw
+    database: TRACKDOWN
+    schema: RAW
+    tables:
+      - name: tracks
+        description: Raw Deezer track data loaded as JSON variant from the pipeline.
