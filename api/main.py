@@ -1,6 +1,9 @@
 import os
+import unicodedata
+import random
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import snowflake.connector
@@ -8,14 +11,7 @@ import requests as http_requests
 
 load_dotenv()
 
-app = FastAPI(title="TrackDown API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
+track_cache: list[dict] = []
 
 
 def get_connection():
@@ -29,9 +25,15 @@ def get_connection():
     )
 
 
-@app.get("/tracks/random")
-def random_track():
-    """Return a single random playable track."""
+def strip_accents(s: str) -> str:
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn'
+    ).lower()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     with get_connection() as conn:
         with conn.cursor(snowflake.connector.DictCursor) as cur:
             cur.execute("""
@@ -40,10 +42,27 @@ def random_track():
                     album_cover_url, preview_url, release_year,
                     decade, genre_name, artist_id, bpm
                 FROM dim_tracks
-                ORDER BY RANDOM()
-                LIMIT 1
             """)
-            return cur.fetchone()
+            track_cache.extend(cur.fetchall())
+    print(f"Loaded {len(track_cache)} tracks into cache")
+    yield
+    track_cache.clear()
+
+
+app = FastAPI(title="TrackDown API", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://192.168.0.89:5173"],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/tracks/random")
+def random_track():
+    """Return a single random playable track."""
+    return random.choice(track_cache)
 
 
 @app.get("/tracks/{track_id}/preview")
@@ -59,18 +78,23 @@ def track_preview(track_id: int):
 
 
 @app.get("/tracks/search")
-def search_tracks(q: str = Query(min_length=1)):
+def search_tracks(q: str):
     """Search tracks by title or artist for the guess dropdown."""
-    with get_connection() as conn:
-        with conn.cursor(snowflake.connector.DictCursor) as cur:
-            cur.execute("""
-                SELECT
-                    track_id, title, artist_name,
-                    album_cover_url, release_year
-                FROM dim_tracks
-                WHERE LOWER(title) LIKE LOWER(%s)
-                   OR LOWER(artist_name) LIKE LOWER(%s)
-                ORDER BY title
-                LIMIT 10
-            """, (f"%{q}%", f"%{q}%"))
-            return cur.fetchall()
+    if not q.strip():
+        return []
+    normalized_q = strip_accents(q.strip())
+    results = [
+        t for t in track_cache
+        if normalized_q in strip_accents(t["TITLE"])
+        or normalized_q in strip_accents(t["ARTIST_NAME"])
+    ]
+    return [
+        {
+            "TRACK_ID": t["TRACK_ID"],
+            "TITLE": t["TITLE"],
+            "ARTIST_NAME": t["ARTIST_NAME"],
+            "ALBUM_COVER_URL": t["ALBUM_COVER_URL"],
+            "RELEASE_YEAR": t["RELEASE_YEAR"],
+        }
+        for t in results[:10]
+    ]

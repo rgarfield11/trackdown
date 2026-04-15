@@ -85,7 +85,10 @@ onMounted(loadTrack)
 
     <VinylRecord :spinning="isPlaying" />
 
-    <div v-if="loading" class="loading">Loading track...</div>
+    <div v-if="loading" class="loading">
+      <span class="spinner" />
+      Loading track...
+    </div>
 
     <template v-else-if="track">
       <AudioPlayer
@@ -171,9 +174,26 @@ onMounted(loadTrack)
 }
 
 .loading {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   color: var(--color-text-muted);
   padding: 40px 0;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .attempts {

@@ -25,7 +25,6 @@ defineProps<{
             </span>
           </div>
         </div>
-        <span class="wrong-mark">✕</span>
       </template>
       <template v-else>
         <span class="skip-label">Skipped</span>
@@ -112,11 +111,6 @@ defineProps<{
   color: var(--color-partial);
 }
 
-.wrong-mark {
-  color: var(--color-text-muted);
-  font-size: 14px;
-  flex-shrink: 0;
-}
 
 .skip-label {
   font-size: 13px;
