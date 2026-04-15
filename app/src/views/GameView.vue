@@ -13,7 +13,7 @@ const track = ref<Record<string, any> | null>(null)
 const isPlaying = ref(false)
 const showRules = ref(false)
 const guesses = ref<Array<{
-  track: Record<string, any>
+  track: Record<string, any> | null
   sameArtist: boolean
   sameGenre: boolean
   yearDiff: number
@@ -21,7 +21,7 @@ const guesses = ref<Array<{
 const gameStatus = ref<'playing' | 'won' | 'lost'>('playing')
 const loading = ref(true)
 
-const currentDuration = () => CLIP_DURATIONS[Math.min(guesses.value.length, MAX_GUESSES - 1)]
+const currentDuration = () => CLIP_DURATIONS[Math.min(guesses.value.length, MAX_GUESSES - 1)] ?? 1
 
 async function loadTrack() {
   loading.value = true

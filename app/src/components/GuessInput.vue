@@ -37,6 +37,10 @@ function select(track: Record<string, any>) {
   results.value = []
   open.value = false
 }
+
+function onBlur() {
+  window.setTimeout(() => { open.value = false; loading.value = false }, 150)
+}
 </script>
 
 <template>
@@ -46,7 +50,7 @@ function select(track: Record<string, any>) {
       type="text"
       placeholder="Search for a song or artist..."
       autocomplete="off"
-      @blur="setTimeout(() => { open = false; loading = false }, 150)"
+      @blur="onBlur"
       @focus="open = results.length > 0"
     />
 
