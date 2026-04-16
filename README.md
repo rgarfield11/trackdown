@@ -90,3 +90,11 @@ Open `http://localhost:5173`.
 Tracks are sourced from Deezer's curated decade playlists (60s through 20s), enriched with album and genre metadata, and loaded into Snowflake as raw JSON. dbt transforms the raw layer into a clean `dim_tracks` mart table that powers the game.
 
 Audio preview URLs are fetched fresh from Deezer at play time to avoid signed URL expiry.
+
+## Contributing
+
+Bug reports and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR — the short version: branch off `main`, write tests alongside your changes, make sure CI is green.
+
+## License
+
+MIT
