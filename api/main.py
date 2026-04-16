@@ -57,9 +57,10 @@ app.add_middleware(
         "http://localhost:5173",
         "http://192.168.0.89:5173",
         "https://trackdown-production-52f0.up.railway.app",
-        "https://trackdown-ngnwazz5a-rgarfield11s-projects.vercel.app",
-        "https://trackdown-amber.vercel.app",
     ],
+    # Matches production alias and all Vercel preview deployments, e.g.
+    # trackdown-amber.vercel.app, trackdown-feat-xyz-rgarfield11s-projects.vercel.app
+    allow_origin_regex=r"https://trackdown[a-zA-Z0-9-]*\.vercel\.app",
     allow_methods=["GET"],
     allow_headers=["*"],
 )
