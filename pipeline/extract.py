@@ -68,7 +68,7 @@ def build_track_record(track, track_detail, album_detail):
         "release_date": album_detail.get("release_date"),
         "release_year": int(album_detail["release_date"][:4]) if album_detail.get("release_date") else None,
         "genre_id": album_detail.get("genre_id"),
-        "genre_name": album_detail.get("genres", {}).get("data", [{}])[0].get("name") if album_detail.get("genres") else None,
+        "genre_name": next(iter(album_detail.get("genres", {}).get("data", [])), {}).get("name"),
         "record_type": album_detail.get("record_type"),
         "label": album_detail.get("label"),
     }
