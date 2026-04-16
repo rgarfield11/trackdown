@@ -174,11 +174,11 @@ onMounted(loadTrack)
       </div>
     </template>
 
-    <footer class="attribution">
-      Music data and previews powered by
-      <a href="https://www.deezer.com" target="_blank" rel="noopener">Deezer</a>
-    </footer>
   </div>
+
+  <footer class="attribution">
+    <a href="https://www.deezer.com" target="_blank" rel="noopener">Powered by Deezer</a>
+  </footer>
 </template>
 
 <style scoped>
@@ -467,16 +467,22 @@ onMounted(loadTrack)
 }
 
 .attribution {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   text-align: center;
   font-size: 11px;
   color: var(--color-text-muted);
-  margin-top: 8px;
+  padding: 16px;
+  pointer-events: none;
 }
 
 .attribution a {
   color: var(--color-text-muted);
   text-decoration: underline;
   text-underline-offset: 2px;
+  pointer-events: all;
 }
 
 .attribution a:hover {
