@@ -75,9 +75,11 @@ describe('GuessInput', () => {
       li.text().includes('Bohemian Rhapsody'),
     )
     await resultItem!.trigger('mousedown')
-    const emitted = wrapper.emitted('guess')
-    expect(emitted).toBeTruthy()
-    expect(emitted![0][0]).toMatchObject({ TRACK_ID: 1, TITLE: 'Bohemian Rhapsody' })
+    // Assert the full emitted structure to avoid chained index access, which
+    // is unsafe under noUncheckedIndexedAccess.
+    expect(wrapper.emitted('guess')).toEqual([
+      [expect.objectContaining({ TRACK_ID: 1, TITLE: 'Bohemian Rhapsody' })],
+    ])
   })
 
   it('clears the input after a selection', async () => {
