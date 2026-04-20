@@ -29,12 +29,21 @@ def main():
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("TRUNCATE TABLE TRACKDOWN.RAW.TRACKS")
+            cur.execute("""
+                CREATE TEMPORARY TABLE tmp_tracks (src VARIANT)
+            """)
             for row in rows:
                 cur.execute(
-                    "INSERT INTO TRACKDOWN.RAW.TRACKS (src) SELECT PARSE_JSON(%s)",
+                    "INSERT INTO tmp_tracks (src) SELECT PARSE_JSON(%s)",
                     row,
                 )
+            cur.execute("""
+                MERGE INTO TRACKDOWN.RAW.TRACKS t
+                USING tmp_tracks s
+                ON t.src:track_id::INTEGER = s.src:track_id::INTEGER
+                WHEN MATCHED THEN UPDATE SET t.src = s.src
+                WHEN NOT MATCHED THEN INSERT (src) VALUES (s.src)
+            """)
             cur.execute("SELECT COUNT(*) FROM TRACKDOWN.RAW.TRACKS")
             count = cur.fetchone()[0]
 

@@ -103,8 +103,21 @@ def build_track_record(track, track_detail, album_detail):
         "label": album_detail.get("label"),
     }
 
+def load_existing_tracks(output_path):
+    """Return a dict of already-enriched tracks keyed by track_id."""
+    if not os.path.exists(output_path):
+        return {}
+    with open(output_path, encoding="utf-8") as f:
+        tracks = json.load(f)
+    return {t["track_id"]: t for t in tracks if t.get("track_id")}
+
+
 def main():
     print("Fetching tracks from Deezer playlists...")
+
+    output_path = os.path.join(os.path.dirname(__file__), "data", "raw_tracks.json")
+    existing_tracks = load_existing_tracks(output_path)
+    print(f"Found {len(existing_tracks)} already-enriched tracks in cache.")
 
     # Step 1: Collect unique track stubs from all playlists
     all_track_stubs = {}
@@ -123,17 +136,18 @@ def main():
                 all_track_stubs[track["id"]] = track
         time.sleep(0.5)
 
-    print(f"\nCollected {len(all_track_stubs)} unique tracks. Enriching...")
+    new_stubs = {tid: stub for tid, stub in all_track_stubs.items() if tid not in existing_tracks}
+    print(f"\nCollected {len(all_track_stubs)} unique tracks ({len(new_stubs)} new). Enriching new tracks...")
 
-    # Step 2: Enrich each track with full details
-    enriched_tracks = []
-    for i, (track_id, track_stub) in enumerate(all_track_stubs.items(), 1):
+    # Step 2: Enrich each new track with full details
+    newly_enriched = []
+    for i, (track_id, track_stub) in enumerate(new_stubs.items(), 1):
 
         if not track_stub.get("preview"):
-            print(f"  [{i}/{len(all_track_stubs)}] Skipping (no preview): {track_stub['title']}")
+            print(f"  [{i}/{len(new_stubs)}] Skipping (no preview): {track_stub['title']}")
             continue
 
-        print(f"  [{i}/{len(all_track_stubs)}] Enriching: {track_stub['title']} - {track_stub['artist']['name']}")
+        print(f"  [{i}/{len(new_stubs)}] Enriching: {track_stub['title']} - {track_stub['artist']['name']}")
 
         try:
             track_detail = enrich_track(track_id)
@@ -144,14 +158,16 @@ def main():
             time.sleep(0.3)
 
             record = build_track_record(track_stub, track_detail, album_detail)
-            enriched_tracks.append(record)
+            newly_enriched.append(record)
 
         except Exception as e:
             print(f"    ! Error enriching track {track_id}: {e}")
             continue
 
+    enriched_tracks = list(existing_tracks.values()) + newly_enriched
+    print(f"\n{len(newly_enriched)} new tracks enriched. {len(enriched_tracks)} total.")
+
     # Step 3: Save to file
-    output_path = os.path.join(os.path.dirname(__file__), "data", "raw_tracks.json")
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(enriched_tracks, f, indent=2)

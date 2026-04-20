@@ -1,6 +1,7 @@
 import subprocess
 import os
 from pathlib import Path
+from datetime import timedelta
 
 from prefect import flow, task, get_run_logger
 
@@ -66,4 +67,4 @@ def pipeline():
 
 
 if __name__ == "__main__":
-    pipeline()
+    pipeline.serve(name="trackdown-daily", interval=timedelta(days=1))

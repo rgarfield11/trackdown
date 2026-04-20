@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from extract_deezer import build_track_record, get_genre_chart_tracks
+from extract_deezer import build_track_record, get_genre_chart_tracks, load_existing_tracks
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -192,3 +192,28 @@ def test_get_genre_chart_tracks_respects_limit():
     with patch("extract_deezer.requests.get", return_value=mock_response):
         result = get_genre_chart_tracks(132, limit=75)
     assert len(result) == 75
+
+
+# ---------------------------------------------------------------------------
+# load_existing_tracks
+# ---------------------------------------------------------------------------
+
+def test_load_existing_tracks_returns_empty_when_no_file():
+    result = load_existing_tracks("/nonexistent/path/raw_tracks.json")
+    assert result == {}
+
+
+def test_load_existing_tracks_keys_by_track_id(tmp_path):
+    data = [{"track_id": 1, "title": "A"}, {"track_id": 2, "title": "B"}]
+    f = tmp_path / "raw_tracks.json"
+    f.write_text(__import__("json").dumps(data), encoding="utf-8")
+    result = load_existing_tracks(str(f))
+    assert result == {1: {"track_id": 1, "title": "A"}, 2: {"track_id": 2, "title": "B"}}
+
+
+def test_load_existing_tracks_skips_entries_without_track_id(tmp_path):
+    data = [{"track_id": 1, "title": "A"}, {"title": "no id"}]
+    f = tmp_path / "raw_tracks.json"
+    f.write_text(__import__("json").dumps(data), encoding="utf-8")
+    result = load_existing_tracks(str(f))
+    assert list(result.keys()) == [1]
