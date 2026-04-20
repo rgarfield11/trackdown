@@ -7,3 +7,5 @@ sources:
     tables:
       - name: tracks
         description: Raw Deezer track data loaded as JSON variant from the pipeline.
+      - name: musicbrainz_releases
+        description: MusicBrainz earliest official release dates for remastered/reissued tracks, keyed by ISRC.
