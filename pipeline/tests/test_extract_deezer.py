@@ -1,9 +1,10 @@
 import sys
 import os
+from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from extract_deezer import build_track_record
+from extract_deezer import build_track_record, get_genre_chart_tracks
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -131,3 +132,63 @@ def test_build_track_record_chart_metadata():
     record = build_track_record(TRACK_STUB, TRACK_DETAIL, ALBUM_DETAIL)
     assert record["chart_position"] == 1
     assert record["rank"] == 950000
+
+
+# ---------------------------------------------------------------------------
+# get_genre_chart_tracks
+# ---------------------------------------------------------------------------
+
+def test_get_genre_chart_tracks_returns_data():
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"data": [{"id": 1}, {"id": 2}]}
+    with patch("extract_deezer.requests.get", return_value=mock_response):
+        result = get_genre_chart_tracks(152, limit=100)
+    assert [{"id": 1}, {"id": 2}] == result
+
+
+def test_get_genre_chart_tracks_empty_data():
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"data": []}
+    with patch("extract_deezer.requests.get", return_value=mock_response):
+        result = get_genre_chart_tracks(152, limit=100)
+    assert result == []
+
+
+def test_get_genre_chart_tracks_uses_correct_url():
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"data": []}
+    with patch("extract_deezer.requests.get", return_value=mock_response) as mock_get:
+        get_genre_chart_tracks(116, limit=100)
+    mock_get.assert_called_once_with("https://api.deezer.com/chart/116/tracks?limit=50&index=0")
+
+
+def test_get_genre_chart_tracks_paginates():
+    page1 = [{"id": i} for i in range(50)]
+    page2 = [{"id": i} for i in range(50, 100)]
+    mock_response = MagicMock()
+    mock_response.json.side_effect = [{"data": page1}, {"data": page2}]
+    with patch("extract_deezer.requests.get", return_value=mock_response):
+        result = get_genre_chart_tracks(132, limit=100)
+    assert len(result) == 100
+    assert result[0] == {"id": 0}
+    assert result[99] == {"id": 99}
+
+
+def test_get_genre_chart_tracks_stops_when_page_short():
+    page1 = [{"id": i} for i in range(50)]
+    page2 = [{"id": i} for i in range(50, 60)]
+    mock_response = MagicMock()
+    mock_response.json.side_effect = [{"data": page1}, {"data": page2}]
+    with patch("extract_deezer.requests.get", return_value=mock_response):
+        result = get_genre_chart_tracks(132, limit=100)
+    assert len(result) == 60
+
+
+def test_get_genre_chart_tracks_respects_limit():
+    page1 = [{"id": i} for i in range(50)]
+    page2 = [{"id": i} for i in range(50, 100)]
+    mock_response = MagicMock()
+    mock_response.json.side_effect = [{"data": page1}, {"data": page2}]
+    with patch("extract_deezer.requests.get", return_value=mock_response):
+        result = get_genre_chart_tracks(132, limit=75)
+    assert len(result) == 75

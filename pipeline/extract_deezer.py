@@ -2,6 +2,9 @@ import requests
 import json
 import time
 import os
+import sys
+
+sys.stdout.reconfigure(encoding="utf-8")
 
 BASE_URL = "https://api.deezer.com"
 
@@ -15,12 +18,39 @@ PLAYLISTS = {
     "hits_20s": 13650084141,
 }
 
+GENRE_CHARTS = {
+    "pop": 132,
+    "rock": 152,
+    "rap_hip_hop": 116,
+    "r_and_b": 165,
+    "soul_and_funk": 169,
+}
+
 def get_playlist_tracks(playlist_id):
     """Pull tracks from a specific playlist."""
     url = f"{BASE_URL}/playlist/{playlist_id}/tracks"
     response = requests.get(url)
     response.raise_for_status()
     return response.json().get("data", [])
+
+def get_genre_chart_tracks(genre_id, limit=100):
+    """Pull top tracks from a genre chart, paginating up to limit."""
+    tracks = []
+    index = 0
+    page_size = 50
+    while len(tracks) < limit:
+        url = f"{BASE_URL}/chart/{genre_id}/tracks?limit={page_size}&index={index}"
+        response = requests.get(url)
+        response.raise_for_status()
+        page = response.json().get("data", [])
+        if not page:
+            break
+        tracks.extend(page)
+        if len(page) < page_size:
+            break
+        index += page_size
+        time.sleep(0.3)
+    return tracks[:limit]
 
 def enrich_track(track_id):
     """Get full track details including BPM and release info."""
@@ -82,6 +112,13 @@ def main():
     for playlist_name, playlist_id in PLAYLISTS.items():
         print(f"  -> {playlist_name} playlist")
         for track in get_playlist_tracks(playlist_id):
+            if track.get("id"):
+                all_track_stubs[track["id"]] = track
+        time.sleep(0.5)
+
+    for genre_name, genre_id in GENRE_CHARTS.items():
+        print(f"  -> {genre_name} genre chart")
+        for track in get_genre_chart_tracks(genre_id):
             if track.get("id"):
                 all_track_stubs[track["id"]] = track
         time.sleep(0.5)

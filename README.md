@@ -14,7 +14,7 @@ A music guessing game inspired by Heardle. Listen to a short clip and identify t
 
 | Layer | Technology |
 |---|---|
-| Data extraction | Python, Deezer API |
+| Data extraction | Python, Deezer API, MusicBrainz API |
 | Data warehouse | Snowflake |
 | Data transformation | dbt |
 | Orchestration | Prefect |
@@ -26,12 +26,14 @@ A music guessing game inspired by Heardle. Listen to a short clip and identify t
 ```
 trackdown/
 ├── pipeline/
-│   ├── extract.py      # Pulls tracks from Deezer decade playlists
-│   ├── load.py         # Loads raw JSON into Snowflake
-│   └── flow.py         # Prefect flow orchestrating the full pipeline
+│   ├── extract_deezer.py       # Pulls tracks from Deezer decade playlists and genre charts
+│   ├── load_deezer.py          # Loads raw Deezer JSON into Snowflake
+│   ├── extract_musicbrainz.py  # Enriches release dates via MusicBrainz API
+│   ├── load_musicbrainz.py     # Loads MusicBrainz release data into Snowflake
+│   └── flow.py                 # Prefect flow orchestrating the full pipeline
 ├── dbt/
 │   └── models/
-│       ├── staging/    # Flattens and types raw Deezer JSON
+│       ├── staging/    # Flattens and types raw JSON from both sources
 │       └── marts/      # Game-ready dim_tracks table
 ├── api/
 │   └── main.py         # FastAPI — serves random tracks, search, and preview URLs
@@ -87,7 +89,12 @@ Open `http://localhost:5173`.
 
 ## Data Pipeline
 
-Tracks are sourced from Deezer's curated decade playlists (60s through 20s), enriched with album and genre metadata, and loaded into Snowflake as raw JSON. dbt transforms the raw layer into a clean `dim_tracks` mart table that powers the game.
+Tracks are sourced from two places:
+
+- **Deezer** — curated decade playlists (60s through 20s) plus genre charts (Pop, Rock, Rap/Hip Hop, R&B, Soul & Funk), enriched with BPM, album metadata, and genre. Duplicates across sources are deduplicated by track ID before enrichment.
+- **MusicBrainz** — used as a secondary source to correct release dates where Deezer reports a remaster or re-release date instead of the original.
+
+Raw JSON from both sources is loaded into Snowflake. dbt transforms the raw layer into a clean `dim_tracks` mart table that powers the game.
 
 Audio preview URLs are fetched fresh from Deezer at play time to avoid signed URL expiry.
 
