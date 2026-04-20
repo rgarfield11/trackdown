@@ -67,4 +67,8 @@ def pipeline():
 
 
 if __name__ == "__main__":
-    pipeline.serve(name="trackdown-daily", interval=timedelta(days=1))
+    import sys
+    if "--serve" in sys.argv:
+        pipeline.serve(name="trackdown-daily", interval=timedelta(days=1))
+    else:
+        pipeline()
