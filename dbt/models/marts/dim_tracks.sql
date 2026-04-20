@@ -55,3 +55,7 @@ enriched as (
 )
 
 select * from enriched
+qualify row_number() over (
+    partition by coalesce(isrc, track_id::varchar)
+    order by release_date asc nulls last
+) = 1
