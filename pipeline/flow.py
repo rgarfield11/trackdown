@@ -4,8 +4,10 @@ from pathlib import Path
 
 from prefect import flow, task, get_run_logger
 
-from extract import main as extract_main
-from load import main as load_main
+from extract_deezer import main as extract_main
+from load_deezer import main as load_main
+from extract_musicbrainz import main as extract_mb_main
+from load_musicbrainz import main as load_mb_main
 
 DBT_DIR = Path(__file__).parent.parent / "dbt"
 
@@ -22,6 +24,20 @@ def load():
     logger = get_run_logger()
     logger.info("Loading tracks into Snowflake...")
     load_main()
+
+
+@task(name="extract_musicbrainz")
+def extract_musicbrainz():
+    logger = get_run_logger()
+    logger.info("Fetching MusicBrainz release dates for flagged tracks...")
+    extract_mb_main()
+
+
+@task(name="load_musicbrainz")
+def load_musicbrainz():
+    logger = get_run_logger()
+    logger.info("Loading MusicBrainz releases into Snowflake...")
+    load_mb_main()
 
 
 @task(name="dbt_run")
@@ -44,6 +60,8 @@ def dbt_run():
 def pipeline():
     extract()
     load()
+    extract_musicbrainz()
+    load_musicbrainz()
     dbt_run()
 
 
