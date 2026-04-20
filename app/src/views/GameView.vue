@@ -173,7 +173,12 @@ onMounted(loadTrack)
         <button class="play-again" @click="playAgain">Play Again</button>
       </div>
     </template>
+
   </div>
+
+  <footer class="attribution">
+    <a href="https://www.deezer.com" target="_blank" rel="noopener">Powered by Deezer</a>
+  </footer>
 </template>
 
 <style scoped>
@@ -459,5 +464,28 @@ onMounted(loadTrack)
 .btn-skip:not(:disabled):active,
 .btn-give-up:active {
   opacity: 0.7;
+}
+
+.attribution {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 16px;
+  pointer-events: none;
+}
+
+.attribution a {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  pointer-events: all;
+}
+
+.attribution a:hover {
+  color: var(--color-text);
 }
 </style>
