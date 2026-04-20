@@ -34,12 +34,19 @@ def main():
                     src VARIANT
                 )
             """)
-            cur.execute("TRUNCATE TABLE TRACKDOWN.RAW.MUSICBRAINZ_RELEASES")
+            cur.execute("CREATE TEMPORARY TABLE tmp_mb_releases (src VARIANT)")
             for row in rows:
                 cur.execute(
-                    "INSERT INTO TRACKDOWN.RAW.MUSICBRAINZ_RELEASES (src) SELECT PARSE_JSON(%s)",
+                    "INSERT INTO tmp_mb_releases (src) SELECT PARSE_JSON(%s)",
                     row,
                 )
+            cur.execute("""
+                MERGE INTO TRACKDOWN.RAW.MUSICBRAINZ_RELEASES t
+                USING tmp_mb_releases s
+                ON t.src:isrc::STRING = s.src:isrc::STRING
+                WHEN MATCHED THEN UPDATE SET t.src = s.src
+                WHEN NOT MATCHED THEN INSERT (src) VALUES (s.src)
+            """)
             cur.execute("SELECT COUNT(*) FROM TRACKDOWN.RAW.MUSICBRAINZ_RELEASES")
             count = cur.fetchone()[0]
 

@@ -75,18 +75,32 @@ def get_earliest_release_date(title, artist_name):
     return min(dates) if dates else None
 
 
+def load_existing_releases(output_path):
+    """Return a dict of already-enriched releases keyed by ISRC."""
+    if not os.path.exists(output_path):
+        return {}
+    with open(output_path, encoding="utf-8") as f:
+        records = json.load(f)
+    return {r["isrc"]: r for r in records if r.get("isrc")}
+
+
 def main():
+    output_path = os.path.join(os.path.dirname(__file__), "data", "raw_musicbrainz.json")
+    existing = load_existing_releases(output_path)
+    print(f"Found {len(existing)} already-enriched releases in cache.")
+
     print("Fetching flagged tracks from Snowflake...")
     flagged = get_flagged_tracks()
-    print(f"Found {len(flagged)} flagged tracks to enrich")
+    new_flagged = [t for t in flagged if t["isrc"] not in existing]
+    print(f"Found {len(flagged)} flagged tracks ({len(new_flagged)} new). Enriching new tracks...")
 
-    results = []
-    for i, track in enumerate(flagged, 1):
-        print(f"  [{i}/{len(flagged)}] {track['title']} - {track['artist_name']}")
+    newly_enriched = []
+    for i, track in enumerate(new_flagged, 1):
+        print(f"  [{i}/{len(new_flagged)}] {track['title']} - {track['artist_name']}")
 
         try:
             earliest_date = get_earliest_release_date(track["title"], track["artist_name"])
-            results.append({
+            newly_enriched.append({
                 "isrc": track["isrc"],
                 "title": track["title"],
                 "artist_name": track["artist_name"],
@@ -98,13 +112,13 @@ def main():
 
         time.sleep(1.1)
 
-    output_path = os.path.join(os.path.dirname(__file__), "data", "raw_musicbrainz.json")
+    results = list(existing.values()) + newly_enriched
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
     found = sum(1 for r in results if r["mb_release_date"])
-    print(f"\nDone! {found}/{len(results)} tracks enriched, saved to {output_path}")
+    print(f"\n{len(newly_enriched)} new tracks enriched. {found}/{len(results)} total with dates, saved to {output_path}")
 
 
 if __name__ == "__main__":
