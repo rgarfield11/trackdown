@@ -3,7 +3,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from extract import build_track_record
+from extract_deezer import build_track_record
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
