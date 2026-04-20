@@ -25,11 +25,13 @@ def get_connection():
     )
 
 
-def strip_accents(s: str) -> str:
-    return ''.join(
+def normalize_text(s: str) -> str:
+    # Strip accents, then remove apostrophes/punctuation so "wasnt" matches "wasn't"
+    without_accents = ''.join(
         c for c in unicodedata.normalize('NFD', s)
         if unicodedata.category(c) != 'Mn'
-    ).lower()
+    )
+    return ''.join(c for c in without_accents if c.isalnum() or c.isspace()).lower()
 
 
 @asynccontextmanager
@@ -89,11 +91,11 @@ def search_tracks(q: str):
     """Search tracks by title or artist for the guess dropdown."""
     if not q.strip():
         return []
-    normalized_q = strip_accents(q.strip())
+    normalized_q = normalize_text(q.strip())
     results = [
         t for t in track_cache
-        if normalized_q in strip_accents(t["TITLE"])
-        or normalized_q in strip_accents(t["ARTIST_NAME"])
+        if normalized_q in normalize_text(t["TITLE"])
+        or normalized_q in normalize_text(t["ARTIST_NAME"])
     ]
     return [
         {

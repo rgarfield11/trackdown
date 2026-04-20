@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from main import app, strip_accents
+from main import app, normalize_text
 
 # ---------------------------------------------------------------------------
 # Sample data — mirrors the uppercase-keyed dicts Snowflake DictCursor returns
@@ -47,6 +47,19 @@ SAMPLE_TRACKS = [
         "DECADE": 2000,
         "GENRE_NAME": "Pop",
         "BPM": 120,
+    },
+    {
+        "TRACK_ID": 4,
+        "TITLE": "It Wasn't Me",
+        "ARTIST_NAME": "Shaggy",
+        "ARTIST_ID": 777,
+        "ALBUM_TITLE": "Hot Shot",
+        "ALBUM_COVER_URL": "https://example.com/cover4.jpg",
+        "PREVIEW_URL": "https://cdn.example.com/preview4.mp3",
+        "RELEASE_YEAR": 2000,
+        "DECADE": 2000,
+        "GENRE_NAME": "Reggae",
+        "BPM": None,
     },
 ]
 
@@ -102,30 +115,35 @@ def client_large():
 
 
 # ---------------------------------------------------------------------------
-# strip_accents — pure function, tested directly
+# normalize_text — pure function, tested directly
 # ---------------------------------------------------------------------------
 
 
-def test_strip_accents_lowercases():
-    assert strip_accents("Hello World") == "hello world"
+def test_normalize_text_lowercases():
+    assert normalize_text("Hello World") == "hello world"
 
 
-def test_strip_accents_removes_acute():
-    assert strip_accents("café") == "cafe"
+def test_normalize_text_removes_acute():
+    assert normalize_text("café") == "cafe"
 
 
-def test_strip_accents_removes_various_diacritics():
-    assert strip_accents("naïve") == "naive"
-    assert strip_accents("Ñoño") == "nono"
-    assert strip_accents("Émile") == "emile"
+def test_normalize_text_removes_various_diacritics():
+    assert normalize_text("naïve") == "naive"
+    assert normalize_text("Ñoño") == "nono"
+    assert normalize_text("Émile") == "emile"
 
 
-def test_strip_accents_empty_string():
-    assert strip_accents("") == ""
+def test_normalize_text_strips_apostrophes():
+    assert normalize_text("wasn't") == "wasnt"
+    assert normalize_text("I'm a Believer") == "im a believer"
 
 
-def test_strip_accents_already_plain():
-    assert strip_accents("queen") == "queen"
+def test_normalize_text_empty_string():
+    assert normalize_text("") == ""
+
+
+def test_normalize_text_already_plain():
+    assert normalize_text("queen") == "queen"
 
 
 # ---------------------------------------------------------------------------
@@ -169,12 +187,19 @@ def test_search_case_insensitive(client):
 
 
 def test_search_accent_insensitive(client):
-    # "cafe" should match "Café de Flore"
     response = client.get("/tracks/search?q=cafe")
     assert response.status_code == 200
     results = response.json()
     assert len(results) == 1
     assert results[0]["TRACK_ID"] == 3
+
+
+def test_search_apostrophe_insensitive(client):
+    response = client.get("/tracks/search?q=wasnt")
+    assert response.status_code == 200
+    results = response.json()
+    assert len(results) == 1
+    assert results[0]["TRACK_ID"] == 4
 
 
 def test_search_response_contains_only_allowed_fields(client):
