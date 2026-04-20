@@ -30,13 +30,8 @@ audio.ontimeupdate = () => {
 }
 
 audio.onended = () => {
-  if (props.loop) {
-    audio.currentTime = 0
-    audio.play()
-  } else {
-    isPlaying.value = false
-    progress.value = 0
-  }
+  isPlaying.value = false
+  progress.value = 0
 }
 
 audio.onerror = () => {
@@ -65,6 +60,7 @@ watch(() => props.maxDuration, () => {
 watch(() => props.loop, async (looping) => {
   if (looping) {
     error.value = null
+    audio.loop = true
     audio.src = previewUrl()
     audio.currentTime = 0
     try {
@@ -74,6 +70,8 @@ watch(() => props.loop, async (looping) => {
       error.value = e.message
       isPlaying.value = false
     }
+  } else {
+    audio.loop = false
   }
 })
 
