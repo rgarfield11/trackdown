@@ -4,7 +4,6 @@ import json
 import time
 import os
 from dotenv import load_dotenv
-import snowflake.connector
 
 load_dotenv()
 
@@ -14,6 +13,7 @@ HEADERS = {"User-Agent": "TrackDown/1.0 (rossgarfield@gmail.com)"}
 REMASTER_KEYWORDS = ["remaster", "reissue"]
 
 def get_connection():
+    import snowflake.connector
     return snowflake.connector.connect(
         account=os.environ["SNOWFLAKE_ACCOUNT"],
         user=os.environ["SNOWFLAKE_USER"],
