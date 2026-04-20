@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from extract_musicbrainz import clean_title, get_earliest_release_date
+from extract_musicbrainz import clean_title, get_earliest_release_date, load_existing_releases
 
 
 # ---------------------------------------------------------------------------
@@ -95,3 +95,31 @@ def test_get_earliest_release_date_skips_recordings_without_date():
     with patch("extract_musicbrainz.requests.get", return_value=_mock_response(recordings)):
         result = get_earliest_release_date("Come Together (Remastered 2009)", "The Beatles")
     assert result == "1969-09-26"
+
+
+# ---------------------------------------------------------------------------
+# load_existing_releases
+# ---------------------------------------------------------------------------
+
+def test_load_existing_releases_returns_empty_when_no_file():
+    result = load_existing_releases("/nonexistent/path/raw_musicbrainz.json")
+    assert result == {}
+
+
+def test_load_existing_releases_keys_by_isrc(tmp_path):
+    data = [
+        {"isrc": "USUM71703861", "mb_release_date": "1969-09-26"},
+        {"isrc": "GBAYE6800011", "mb_release_date": "1965-03-22"},
+    ]
+    f = tmp_path / "raw_musicbrainz.json"
+    f.write_text(__import__("json").dumps(data), encoding="utf-8")
+    result = load_existing_releases(str(f))
+    assert set(result.keys()) == {"USUM71703861", "GBAYE6800011"}
+
+
+def test_load_existing_releases_skips_entries_without_isrc(tmp_path):
+    data = [{"isrc": "USUM71703861", "mb_release_date": "1969-09-26"}, {"mb_release_date": "2000-01-01"}]
+    f = tmp_path / "raw_musicbrainz.json"
+    f.write_text(__import__("json").dumps(data), encoding="utf-8")
+    result = load_existing_releases(str(f))
+    assert list(result.keys()) == ["USUM71703861"]
