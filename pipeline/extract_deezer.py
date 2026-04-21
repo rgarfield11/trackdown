@@ -131,7 +131,7 @@ def main():
 
     for genre_name, genre_id in GENRE_CHARTS.items():
         print(f"  -> {genre_name} genre chart")
-        for track in get_genre_chart_tracks(genre_id):
+        for track in get_genre_chart_tracks(genre_id, limit=10):
             if track.get("id"):
                 all_track_stubs[track["id"]] = track
         time.sleep(0.5)
