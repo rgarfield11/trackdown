@@ -65,6 +65,7 @@ def get_earliest_release_date(title, artist_name):
         r["first-release-date"]
         for r in response.json().get("recordings", [])
         if r.get("first-release-date")
+        and r.get("score", 0) >= 90
         and any(
             credit["artist"]["name"].lower().removeprefix("the ") == artist_name.lower().removeprefix("the ")
             for credit in r.get("artist-credit", [])

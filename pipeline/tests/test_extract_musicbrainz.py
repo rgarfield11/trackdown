@@ -43,8 +43,8 @@ def _mock_response(recordings):
 
 def test_get_earliest_release_date_returns_earliest():
     recordings = [
-        {"first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
-        {"first-release-date": "2009-09-09", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
+        {"score": 100, "first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
+        {"score": 95, "first-release-date": "2009-09-09", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
     ]
     with patch("extract_musicbrainz.requests.get", return_value=_mock_response(recordings)):
         result = get_earliest_release_date("Come Together (Remastered 2009)", "The Beatles")
@@ -53,8 +53,8 @@ def test_get_earliest_release_date_returns_earliest():
 
 def test_get_earliest_release_date_filters_wrong_artist():
     recordings = [
-        {"first-release-date": "1965-01-01", "artist-credit": [{"artist": {"name": "Some Cover Artist"}}]},
-        {"first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
+        {"score": 92, "first-release-date": "1965-01-01", "artist-credit": [{"artist": {"name": "Some Cover Artist"}}]},
+        {"score": 98, "first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
     ]
     with patch("extract_musicbrainz.requests.get", return_value=_mock_response(recordings)):
         result = get_earliest_release_date("Yesterday (Remastered 2009)", "The Beatles")
@@ -63,7 +63,7 @@ def test_get_earliest_release_date_filters_wrong_artist():
 
 def test_get_earliest_release_date_the_prefix_insensitive():
     recordings = [
-        {"first-release-date": "2009-06-15", "artist-credit": [{"artist": {"name": "Black Eyed Peas"}}]},
+        {"score": 91, "first-release-date": "2009-06-15", "artist-credit": [{"artist": {"name": "Black Eyed Peas"}}]},
     ]
     with patch("extract_musicbrainz.requests.get", return_value=_mock_response(recordings)):
         result = get_earliest_release_date("I Gotta Feeling", "The Black Eyed Peas")
@@ -72,7 +72,7 @@ def test_get_earliest_release_date_the_prefix_insensitive():
 
 def test_get_earliest_release_date_no_matches_returns_none():
     recordings = [
-        {"first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "Someone Else"}}]},
+        {"score": 95, "first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "Someone Else"}}]},
     ]
     with patch("extract_musicbrainz.requests.get", return_value=_mock_response(recordings)):
         result = get_earliest_release_date("Come Together (Remastered 2009)", "The Beatles")
@@ -87,10 +87,20 @@ def test_get_earliest_release_date_404_returns_none():
     assert result is None
 
 
+def test_get_earliest_release_date_filters_low_score():
+    recordings = [
+        {"score": 45, "first-release-date": "1955-01-01", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
+        {"score": 95, "first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
+    ]
+    with patch("extract_musicbrainz.requests.get", return_value=_mock_response(recordings)):
+        result = get_earliest_release_date("Come Together (Remastered 2009)", "The Beatles")
+    assert result == "1969-09-26"
+
+
 def test_get_earliest_release_date_skips_recordings_without_date():
     recordings = [
-        {"artist-credit": [{"artist": {"name": "The Beatles"}}]},
-        {"first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
+        {"score": 100, "artist-credit": [{"artist": {"name": "The Beatles"}}]},
+        {"score": 100, "first-release-date": "1969-09-26", "artist-credit": [{"artist": {"name": "The Beatles"}}]},
     ]
     with patch("extract_musicbrainz.requests.get", return_value=_mock_response(recordings)):
         result = get_earliest_release_date("Come Together (Remastered 2009)", "The Beatles")
