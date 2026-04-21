@@ -92,7 +92,12 @@ def main():
 
     print("Fetching flagged tracks from Snowflake...")
     flagged = get_flagged_tracks()
-    new_flagged = [t for t in flagged if t["isrc"] not in existing]
+    seen = set(existing.keys())
+    new_flagged = []
+    for t in flagged:
+        if t["isrc"] not in seen:
+            seen.add(t["isrc"])
+            new_flagged.append(t)
     print(f"Found {len(flagged)} flagged tracks ({len(new_flagged)} new). Enriching new tracks...")
 
     newly_enriched = []
