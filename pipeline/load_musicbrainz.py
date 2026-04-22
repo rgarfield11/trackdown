@@ -42,7 +42,10 @@ def main():
                 )
             cur.execute("""
                 MERGE INTO TRACKDOWN.RAW.MUSICBRAINZ_RELEASES t
-                USING tmp_mb_releases s
+                USING (
+                    SELECT src FROM tmp_mb_releases
+                    QUALIFY ROW_NUMBER() OVER (PARTITION BY src:isrc::STRING ORDER BY 1) = 1
+                ) s
                 ON t.src:isrc::STRING = s.src:isrc::STRING
                 WHEN MATCHED THEN UPDATE SET t.src = s.src
                 WHEN NOT MATCHED THEN INSERT (src) VALUES (s.src)
