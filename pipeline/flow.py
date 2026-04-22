@@ -46,7 +46,7 @@ def dbt_run():
     logger = get_run_logger()
     logger.info("Running dbt models...")
     result = subprocess.run(
-        ["dbt", "run"],
+        ["dbt", "run", "--profiles-dir", str(DBT_DIR)],
         cwd=DBT_DIR,
         capture_output=True,
         text=True,
@@ -54,7 +54,7 @@ def dbt_run():
     logger.info(result.stdout)
     if result.returncode != 0:
         logger.error(result.stderr)
-        raise RuntimeError("dbt run failed")
+        raise RuntimeError(f"dbt run failed:\n{result.stderr}")
 
 
 @flow(name="trackdown-pipeline")
