@@ -151,7 +151,11 @@ onMounted(loadTrack)
         <button class="btn-give-up" @click="giveUp">Give Up</button>
       </div>
 
-      <GuessInput v-if="gameStatus === 'playing'" @guess="onGuess" />
+      <GuessInput
+        v-if="gameStatus === 'playing'"
+        :guessed-ids="guesses.filter(g => g.track).map(g => g.track!.TRACK_ID)"
+        @guess="onGuess"
+      />
 
       <div v-if="gameStatus === 'won'" class="result won">
         <img :src="track.ALBUM_COVER_URL" :alt="track.ALBUM_TITLE" class="result-cover" />

@@ -104,4 +104,22 @@ describe('GuessInput', () => {
     await wrapper.find('input').setValue('')
     expect(wrapper.find('.dropdown').exists()).toBe(false)
   })
+
+  it('filters out already-guessed tracks from results', async () => {
+    vi.stubGlobal('fetch', mockFetch(SEARCH_RESULTS))
+    const wrapper = mount(GuessInput, { props: { guessedIds: [1] } })
+    await wrapper.find('input').setValue('Queen')
+    await vi.advanceTimersByTimeAsync(250)
+    await flushPromises()
+    expect(wrapper.findAll('.dropdown li').some((li) => li.text().includes('Bohemian Rhapsody'))).toBe(false)
+  })
+
+  it('shows a track that is not in guessedIds', async () => {
+    vi.stubGlobal('fetch', mockFetch(SEARCH_RESULTS))
+    const wrapper = mount(GuessInput, { props: { guessedIds: [99] } })
+    await wrapper.find('input').setValue('Queen')
+    await vi.advanceTimersByTimeAsync(250)
+    await flushPromises()
+    expect(wrapper.findAll('.dropdown li').some((li) => li.text().includes('Bohemian Rhapsody'))).toBe(true)
+  })
 })

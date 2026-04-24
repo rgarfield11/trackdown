@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
+const props = defineProps<{
+  guessedIds?: number[]
+}>()
+
 const emit = defineEmits<{
   guess: [track: Record<string, any>]
 }>()
@@ -25,7 +29,9 @@ watch(query, (val) => {
   open.value = true
   debounceTimer = setTimeout(async () => {
     const res = await fetch(`${API}/tracks/search?q=${encodeURIComponent(val)}`)
-    results.value = await res.json()
+    const all: Record<string, any>[] = await res.json()
+    const excluded = new Set(props.guessedIds ?? [])
+    results.value = all.filter((t) => !excluded.has(t.TRACK_ID))
     loading.value = false
     open.value = true
   }, 250)
