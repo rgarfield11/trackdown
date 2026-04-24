@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import GameView from '../GameView.vue'
 import AudioPlayer from '../../components/AudioPlayer.vue'
 import GuessInput from '../../components/GuessInput.vue'
+import GuessList from '../../components/GuessList.vue'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -244,5 +245,60 @@ describe('GameView', () => {
     await wrapper.find('.play-again').trigger('click')
     await flushPromises()
     expect(fetchSpy.mock.calls.length).toBeGreaterThan(callsBefore)
+  })
+
+  // -------------------------------------------------------------------------
+  // Clue metadata computation
+  // -------------------------------------------------------------------------
+
+  it('sets sameArtist true when guessed track shares ARTIST_ID with the answer', async () => {
+    const wrapper = await mountGame()
+    await emitGuess(wrapper, { ...WRONG_TRACK, ARTIST_ID: ANSWER.ARTIST_ID })
+    const guesses = wrapper.findComponent(GuessList).props('guesses') as any[]
+    expect(guesses[0].sameArtist).toBe(true)
+  })
+
+  it('sets sameArtist false when ARTIST_ID differs', async () => {
+    const wrapper = await mountGame()
+    await emitGuess(wrapper, WRONG_TRACK)
+    const guesses = wrapper.findComponent(GuessList).props('guesses') as any[]
+    expect(guesses[0].sameArtist).toBe(false)
+  })
+
+  it('sets sameGenre true when guessed track shares GENRE_NAME with the answer', async () => {
+    const wrapper = await mountGame()
+    await emitGuess(wrapper, { ...WRONG_TRACK, GENRE_NAME: ANSWER.GENRE_NAME })
+    const guesses = wrapper.findComponent(GuessList).props('guesses') as any[]
+    expect(guesses[0].sameGenre).toBe(true)
+  })
+
+  it('sets sameGenre false when GENRE_NAME differs', async () => {
+    const wrapper = await mountGame()
+    await emitGuess(wrapper, WRONG_TRACK)
+    const guesses = wrapper.findComponent(GuessList).props('guesses') as any[]
+    expect(guesses[0].sameGenre).toBe(false)
+  })
+
+  it('computes yearDiff as the absolute difference between release years', async () => {
+    const wrapper = await mountGame()
+    // ANSWER.RELEASE_YEAR = 1975, guessed = 1991 → diff = 16
+    await emitGuess(wrapper, WRONG_TRACK)
+    const guesses = wrapper.findComponent(GuessList).props('guesses') as any[]
+    expect(guesses[0].yearDiff).toBe(16)
+  })
+
+  it('yearDiff is absolute (same value regardless of which year is larger)', async () => {
+    const wrapper = await mountGame()
+    // Guessed year earlier than answer: 1975 - 3 = 1972 → diff = 3
+    await emitGuess(wrapper, { ...WRONG_TRACK, RELEASE_YEAR: 1972 })
+    const guesses = wrapper.findComponent(GuessList).props('guesses') as any[]
+    expect(guesses[0].yearDiff).toBe(3)
+  })
+
+  it('yearDiff is 0 when release years match', async () => {
+    const wrapper = await mountGame()
+    await emitGuess(wrapper, { ...WRONG_TRACK, RELEASE_YEAR: ANSWER.RELEASE_YEAR })
+    const guesses = wrapper.findComponent(GuessList).props('guesses') as any[]
+    expect(guesses[0].yearDiff).toBe(0)
   })
 })

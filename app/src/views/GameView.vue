@@ -108,7 +108,7 @@ onMounted(loadTrack)
           <li>Listen to the clip and guess the song.</li>
           <li>You have <strong>6 guesses</strong>. Each wrong guess or skip adds 1 second to the clip.</li>
           <li>Search by song title or artist name to make a guess.</li>
-          <li>Wrong guesses show clues — same artist, same genre, or release year within 5 years.</li>
+          <li>Wrong guesses show clues for <strong>artist</strong>, <strong>release year</strong>, and <strong>genre</strong> — green means correct, yellow means within 5 years (year only), red means wrong.</li>
           <li>Hit <strong>Skip</strong> to hear more without guessing.</li>
           <li>Hit <strong>Give Up</strong> to reveal the answer.</li>
         </ul>
