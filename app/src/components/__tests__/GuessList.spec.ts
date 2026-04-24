@@ -80,12 +80,14 @@ describe('GuessList', () => {
 
   it('artist tile has correct class when sameArtist is true', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ sameArtist: true })] } })
-    expect(wrapper.findAll('.clue-tile')[0].classes()).toContain('correct')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[0]!.classes()).toContain('correct')
   })
 
   it('artist tile has wrong class when sameArtist is false', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ sameArtist: false })] } })
-    expect(wrapper.findAll('.clue-tile')[0].classes()).toContain('wrong')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[0]!.classes()).toContain('wrong')
   })
 
   // -------------------------------------------------------------------------
@@ -94,22 +96,26 @@ describe('GuessList', () => {
 
   it('year tile has correct class when yearDiff is 0', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ yearDiff: 0 })] } })
-    expect(wrapper.findAll('.clue-tile')[1].classes()).toContain('correct')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[1]!.classes()).toContain('correct')
   })
 
   it('year tile has close class when yearDiff is between 1 and 5', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ yearDiff: 3 })] } })
-    expect(wrapper.findAll('.clue-tile')[1].classes()).toContain('close')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[1]!.classes()).toContain('close')
   })
 
   it('year tile has close class at the boundary of yearDiff === 5', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ yearDiff: 5 })] } })
-    expect(wrapper.findAll('.clue-tile')[1].classes()).toContain('close')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[1]!.classes()).toContain('close')
   })
 
   it('year tile has wrong class when yearDiff is greater than 5', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ yearDiff: 6 })] } })
-    expect(wrapper.findAll('.clue-tile')[1].classes()).toContain('wrong')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[1]!.classes()).toContain('wrong')
   })
 
   // -------------------------------------------------------------------------
@@ -118,12 +124,14 @@ describe('GuessList', () => {
 
   it('genre tile has correct class when sameGenre is true', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ sameGenre: true })] } })
-    expect(wrapper.findAll('.clue-tile')[2].classes()).toContain('correct')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[2]!.classes()).toContain('correct')
   })
 
   it('genre tile has wrong class when sameGenre is false', () => {
     const wrapper = mount(GuessList, { props: { guesses: [makeGuess({ sameGenre: false })] } })
-    expect(wrapper.findAll('.clue-tile')[2].classes()).toContain('wrong')
+    const tiles = wrapper.findAll('.clue-tile')
+    expect(tiles[2]!.classes()).toContain('wrong')
   })
 
   // -------------------------------------------------------------------------
