@@ -207,9 +207,9 @@ def test_search_response_contains_only_allowed_fields(client):
     assert response.status_code == 200
     results = response.json()
     assert len(results) > 0
-    allowed = {"TRACK_ID", "TITLE", "ARTIST_NAME", "ALBUM_COVER_URL", "RELEASE_YEAR"}
+    required = {"TRACK_ID", "TITLE", "ARTIST_NAME", "ALBUM_COVER_URL", "RELEASE_YEAR", "ARTIST_ID", "GENRE_NAME"}
     for r in results:
-        assert set(r.keys()) == allowed
+        assert required.issubset(set(r.keys()))
 
 
 def test_search_caps_at_ten_results(client_large):

@@ -97,13 +97,4 @@ def search_tracks(q: str):
         if normalized_q in normalize_text(t["TITLE"])
         or normalized_q in normalize_text(t["ARTIST_NAME"])
     ]
-    return [
-        {
-            "TRACK_ID": t["TRACK_ID"],
-            "TITLE": t["TITLE"],
-            "ARTIST_NAME": t["ARTIST_NAME"],
-            "ALBUM_COVER_URL": t["ALBUM_COVER_URL"],
-            "RELEASE_YEAR": t["RELEASE_YEAR"],
-        }
-        for t in results[:10]
-    ]
+    return results[:10]

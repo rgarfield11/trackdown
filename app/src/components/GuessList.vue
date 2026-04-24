@@ -17,12 +17,22 @@ defineProps<{
         <div class="info">
           <span class="title">{{ g.track.TITLE }}</span>
           <span class="artist">{{ g.track.ARTIST_NAME }} &middot; {{ g.track.RELEASE_YEAR }}</span>
-          <div class="clues">
-            <span v-if="g.sameArtist" class="clue correct">Same Artist</span>
-            <span v-if="g.sameGenre" class="clue partial">Same Genre</span>
-            <span v-if="!g.sameArtist && g.yearDiff <= 5" class="clue partial">
-              Within {{ g.yearDiff === 0 ? 'Same Year' : `${g.yearDiff}yr` }}
-            </span>
+          <div class="clue-tiles">
+            <div class="clue-tile" :class="g.sameArtist ? 'correct' : 'wrong'">
+              <span class="tile-label">Artist</span>
+              <span class="tile-value">{{ g.track.ARTIST_NAME }}</span>
+            </div>
+            <div
+              class="clue-tile"
+              :class="g.yearDiff === 0 ? 'correct' : g.yearDiff <= 5 ? 'close' : 'wrong'"
+            >
+              <span class="tile-label">Year</span>
+              <span class="tile-value">{{ g.track.RELEASE_YEAR }}</span>
+            </div>
+            <div class="clue-tile" :class="g.sameGenre ? 'correct' : 'wrong'">
+              <span class="tile-label">Genre</span>
+              <span class="tile-value">{{ g.track.GENRE_NAME }}</span>
+            </div>
           </div>
         </div>
       </template>
@@ -85,30 +95,54 @@ defineProps<{
   color: var(--color-text-muted);
 }
 
-.clues {
+.clue-tiles {
   display: flex;
-  gap: 6px;
-  margin-top: 4px;
-  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
 }
 
-.clue {
+.clue-tile {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tile-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+.tile-value {
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
 }
 
-.clue.correct {
-  background: rgba(30, 215, 96, 0.15);
-  color: var(--color-correct);
+.clue-tile.correct {
+  background: rgba(76, 175, 100, 0.2);
+  color: #4caf64;
 }
 
-.clue.partial {
-  background: rgba(245, 166, 35, 0.15);
-  color: var(--color-partial);
+.clue-tile.close {
+  background: rgba(210, 180, 30, 0.2);
+  color: #d4b84a;
+}
+
+.clue-tile.wrong {
+  background: rgba(200, 80, 60, 0.15);
+  color: #c85040;
 }
 
 
